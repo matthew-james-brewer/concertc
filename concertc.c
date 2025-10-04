@@ -1,0 +1,140 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stddef.h>
+#include <stdint.h>
+
+typedef enum {
+ NATURAL,
+ SHARP,
+ FLAT
+} accidental;
+
+typedef struct {
+ uint8_t letter; // can be from 0 (A) - 6 (G)
+ accidental acc;
+ uint8_t pitch_lvl;
+ uint8_t inv_beats;
+} note;
+
+typedef struct {
+ int length;
+ note** a;
+} song;
+
+song* parse_concert(char* concert) {
+ FILE* fPtr = fopen(concert, "r");
+
+ if(!fPtr) { perror("Error"); exit(-1); }
+
+ char line[1000];
+
+ fgets(line, sizeof(line), fPtr);
+ int ln = 0; // number of notes
+ while(fgets(line, sizeof(line), fPtr)) { if(line[0] != '\n') { ln++; } }
+ rewind(fPtr);
+
+ song* res = malloc(sizeof(song));
+ res->length = ln;
+ res->a = malloc(sizeof(note*) * ln);
+
+ fgets(line, sizeof(line), fPtr); // skip this line, it contains the guide
+
+ int noteNum = 0;
+
+ while(fgets(line, sizeof(line), fPtr)) {
+  // skip empty lines
+  if(line[0] != '\n') {
+   note* n = malloc(sizeof(note));
+   n->letter = line[0]-'A'; // line[0] = letter
+   // line[1] = ','
+   // line[2] = accidental
+   switch(line[2]) {
+    case ' ': n->acc = NATURAL; break;
+    case '#': n->acc = SHARP; break;
+    case 'b': n->acc = FLAT; break;
+    default: n->acc = NATURAL; break;
+   }
+   // line[3] = ','
+   n->pitch_lvl = 9-('9'-line[4]); // line[4] = pitch level
+   // line[5] = ','
+   n->inv_beats = (uint8_t)atoi(&line[6]); // line[6...] = 1/beats
+   res->a[noteNum] = n;
+   noteNum++;
+  }
+ }
+ return res;
+}
+
+typedef enum {
+ CONCERT_INST,
+ BB_INST,
+ EB_INST,
+ F_INST
+} instrument;
+
+// this function should be in libc
+
+static void* memdup(const void* src, size_t size) {
+    void* dst = malloc(size);
+    if (dst) memcpy(dst, src, size);
+    return dst;
+}
+
+// note letter [7], accidental [3], instrument (minus concert) [3]
+
+typedef struct {
+ uint8_t letter;
+ accidental acc;
+} nmin;
+
+#define N(x,y) { x-'A', y }
+
+nmin*** trans_table;
+
+static void trans_table_init(void) {
+ trans_table = malloc(sizeof(nmin**) * 7);
+
+ for(int i = 0; i < 7; i++) { trans_table[i] = malloc(sizeof(nmin*) * 3); }
+
+ trans_table[0][0] = memdup((nmin[]){ N('B', NATURAL), N('F', SHARP),   N('E', NATURAL) }, sizeof(nmin[3])); // A
+ trans_table[0][2] = memdup((nmin[]){ N('B', FLAT),    N('F', NATURAL), N('E', FLAT)    }, sizeof(nmin[3])); // Ab
+ trans_table[1][0] = memdup((nmin[]){ N('C', SHARP),   N('G', SHARP),   N('F', SHARP)   }, sizeof(nmin[3])); // B
+ trans_table[1][2] = memdup((nmin[]){ N('C', NATURAL), N('G', NATURAL), N('F', NATURAL) }, sizeof(nmin[3])); // Bb
+ trans_table[2][0] = memdup((nmin[]){ N('D', NATURAL), N('A', NATURAL), N('G', NATURAL) }, sizeof(nmin[3])); // C
+ trans_table[3][0] = memdup((nmin[]){ N('E', NATURAL), N('B', NATURAL), N('A', NATURAL) }, sizeof(nmin[3])); // D
+ trans_table[3][2] = memdup((nmin[]){ N('E', FLAT),    N('B', FLAT),    N('A', FLAT)    }, sizeof(nmin[3])); // Db
+ trans_table[4][0] = memdup((nmin[]){ N('F', SHARP),   N('C', SHARP),   N('B', NATURAL) }, sizeof(nmin[3])); // E
+ trans_table[4][2] = memdup((nmin[]){ N('F', NATURAL), N('C', NATURAL), N('B', FLAT)    }, sizeof(nmin[3])); // Eb
+ trans_table[5][0] = memdup((nmin[]){ N('G', NATURAL), N('D', NATURAL), N('C', NATURAL) }, sizeof(nmin[3])); // F
+ trans_table[5][1] = memdup((nmin[]){ N('G', SHARP),   N('D', SHARP),   N('C', SHARP)   }, sizeof(nmin[3])); // F#
+ trans_table[6][0] = memdup((nmin[]){ N('A', NATURAL), N('E', NATURAL), N('D', NATURAL) }, sizeof(nmin[3])); // G
+
+ trans_table[0][1] = trans_table[1][2]; // A# = Bb
+ trans_table[1][1] = trans_table[2][0]; // B# = C
+ trans_table[2][1] = trans_table[3][2]; // C# = Db
+ trans_table[2][2] = trans_table[1][0]; // Cb = B
+ trans_table[3][1] = trans_table[4][2]; // D# = Eb
+ trans_table[4][1] = trans_table[5][0]; // E# = F
+ trans_table[5][2] = trans_table[4][0]; // Fb = E
+ trans_table[6][1] = trans_table[0][2]; // G# = Ab
+ trans_table[6][2] = trans_table[5][1]; // Gb = F#
+}
+
+void compile_song(song* concert, char* lilypond, instrument instr) {
+ for(int i = 0; i < (concert->length); i++) {
+  note* n = concert->a[i];
+  if(instr != CONCERT_INST) {
+   nmin a = trans_table[n->letter][n->acc][instr-1];
+   printf("letter %d, accidental %d; ",a.letter,a.acc);
+  }
+ }
+}
+
+int main(int argc, char * argv[]) {
+ //int transpose = +1;
+ trans_table_init();
+ 
+ song* x = parse_concert("example.concert");
+ compile_song(x, "z", BB_INST);
+}
