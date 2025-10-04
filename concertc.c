@@ -153,13 +153,18 @@ void compile_song(song* concert, char* lilypond, instrument instr, uint8_t pitch
   if(instr != CONCERT_INST) {
    a = trans_table[n->letter][n->acc][instr-1];
   } else {
-   a = (nmin)N(n->letter, n->acc);
+   a = (nmin){n->letter, n->acc};
   }
   fputc('a'+a.letter, lPtr);
   if(a.acc == SHARP) { fputs("is", lPtr); }
   else if(a.acc == FLAT) { fputs("es", lPtr); }
-  uint8_t true_pitch_lvl = n->pitch_lvl + pitch_lvl_offset;
-  for(int i = 0; i < true_pitch_lvl; i++) { fputc('\'', lPtr); }
+  int8_t true_pitch_lvl = (n->pitch_lvl - 2) + pitch_lvl_offset;
+  if(instr == BB_INST && n->letter == 6) { true_pitch_lvl++; }
+  if(true_pitch_lvl < 0) {
+   for(int i = 0; i < -true_pitch_lvl; i++) { fputc(',',lPtr); }
+  } else {
+   for(int i = 0; i < true_pitch_lvl; i++) { fputc('\'', lPtr); }
+  }
   fprintf(lPtr, "%d ", n->inv_beats);
  }
  fputs("\n}\n",lPtr);
@@ -167,11 +172,34 @@ void compile_song(song* concert, char* lilypond, instrument instr, uint8_t pitch
 }
 
 int main(int argc, char * argv[]) {
- //int transpose = +1;
  trans_table_init();
- 
- song* x = parse_concert("example.concert");
- compile_song(x, "z.ly", BB_INST, 2, "treble");
+
+ // no thanks, I will not use getopt
+
+ if(argc != 6) {
+  printf("Error: incorrect argument number;\nUsage: %s x.concert x.ly (C|Bb|Eb|F) {pitch offset} (treble|bass)\n", argv[0]);
+  exit(-1);
+ }
+
+ char* src = argv[1];
+ char* dest = argv[2];
+
+ instrument i;
+ if(strcmp(argv[3],"C") == 0) { i = CONCERT_INST; }
+ else if(strcmp(argv[3],"Bb") == 0) { i = BB_INST; }
+ else if(strcmp(argv[3],"Eb") == 0) { i = EB_INST; }
+ else if(strcmp(argv[3],"F") == 0) { i = F_INST; }
+ else {
+  printf("Invalid instrument type: '%s'\n", argv[3]);
+  exit(-1);
+ }
+
+ uint8_t offset = (uint8_t)atoi(argv[4]);
+
+ char* clef = argv[5];
+
+ song* x = parse_concert(src);
+ compile_song(x, dest, i, offset, clef);
  free_song(x);
  trans_table_cleanup();
 }
