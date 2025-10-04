@@ -95,9 +95,12 @@ static void* memdup(const void* src, size_t size) {
 typedef struct {
  uint8_t letter;
  accidental acc;
+ int8_t oct_shift;
 } nmin;
 
-#define N(x,y) { x-'A', y }
+#define N(x,y) { x-'A', y, 0 }
+#define U(x,y) { x-'A', y, 1 }
+#define D(x,y) { x-'A', y, -1 }
 
 nmin*** trans_table;
 
@@ -108,12 +111,12 @@ static void trans_table_init(void) {
 
  trans_table[0][0] = memdup((nmin[]){ N('B', NATURAL), N('F', SHARP),   N('E', NATURAL) }, sizeof(nmin[3])); // A
  trans_table[0][2] = memdup((nmin[]){ N('B', FLAT),    N('F', NATURAL), N('E', FLAT)    }, sizeof(nmin[3])); // Ab
- trans_table[1][0] = memdup((nmin[]){ N('C', SHARP),   N('G', SHARP),   N('F', SHARP)   }, sizeof(nmin[3])); // B
+ trans_table[1][0] = memdup((nmin[]){ U('C', SHARP),   N('G', SHARP),   N('F', SHARP)   }, sizeof(nmin[3])); // B
  trans_table[1][2] = memdup((nmin[]){ N('C', NATURAL), N('G', NATURAL), N('F', NATURAL) }, sizeof(nmin[3])); // Bb
- trans_table[2][0] = memdup((nmin[]){ N('D', NATURAL), N('A', NATURAL), N('G', NATURAL) }, sizeof(nmin[3])); // C
- trans_table[3][0] = memdup((nmin[]){ N('E', NATURAL), N('B', NATURAL), N('A', NATURAL) }, sizeof(nmin[3])); // D
+ trans_table[2][0] = memdup((nmin[]){ N('D', NATURAL), D('A', NATURAL), D('G', NATURAL) }, sizeof(nmin[3])); // C
+ trans_table[3][0] = memdup((nmin[]){ N('E', NATURAL), D('B', NATURAL), D('A', NATURAL) }, sizeof(nmin[3])); // D
  trans_table[3][2] = memdup((nmin[]){ N('E', FLAT),    N('B', FLAT),    N('A', FLAT)    }, sizeof(nmin[3])); // Db
- trans_table[4][0] = memdup((nmin[]){ N('F', SHARP),   N('C', SHARP),   N('B', NATURAL) }, sizeof(nmin[3])); // E
+ trans_table[4][0] = memdup((nmin[]){ N('F', SHARP),   N('C', SHARP),   D('B', NATURAL) }, sizeof(nmin[3])); // E
  trans_table[4][2] = memdup((nmin[]){ N('F', NATURAL), N('C', NATURAL), N('B', FLAT)    }, sizeof(nmin[3])); // Eb
  trans_table[5][0] = memdup((nmin[]){ N('G', NATURAL), N('D', NATURAL), N('C', NATURAL) }, sizeof(nmin[3])); // F
  trans_table[5][1] = memdup((nmin[]){ N('G', SHARP),   N('D', SHARP),   N('C', SHARP)   }, sizeof(nmin[3])); // F#
@@ -153,13 +156,12 @@ void compile_song(song* concert, char* lilypond, instrument instr, uint8_t pitch
   if(instr != CONCERT_INST) {
    a = trans_table[n->letter][n->acc][instr-1];
   } else {
-   a = (nmin){n->letter, n->acc};
+   a = (nmin){n->letter, n->acc, 0};
   }
   fputc('a'+a.letter, lPtr);
   if(a.acc == SHARP) { fputs("is", lPtr); }
   else if(a.acc == FLAT) { fputs("es", lPtr); }
-  int8_t true_pitch_lvl = (n->pitch_lvl - 2) + pitch_lvl_offset;
-  if(instr == BB_INST && n->letter == 6) { true_pitch_lvl++; }
+  int8_t true_pitch_lvl = (n->pitch_lvl - 2) + pitch_lvl_offset + a.oct_shift;
   if(true_pitch_lvl < 0) {
    for(int i = 0; i < -true_pitch_lvl; i++) { fputc(',',lPtr); }
   } else {
@@ -203,3 +205,4 @@ int main(int argc, char * argv[]) {
  free_song(x);
  trans_table_cleanup();
 }
+
