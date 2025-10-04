@@ -63,7 +63,16 @@ song* parse_concert(char* concert) {
    noteNum++;
   }
  }
+ fclose(fPtr);
  return res;
+}
+
+void free_song(song* s) {
+ for(int i = 0; i < (s->length); i++) {
+  free(s->a[i]);
+ }
+ free(s->a);
+ free(s);
 }
 
 typedef enum {
@@ -73,7 +82,7 @@ typedef enum {
  F_INST
 } instrument;
 
-// this function should be in libc
+// this function should be in libc:
 
 static void* memdup(const void* src, size_t size) {
     void* dst = malloc(size);
@@ -121,6 +130,13 @@ static void trans_table_init(void) {
  trans_table[6][2] = trans_table[5][1]; // Gb = F#
 }
 
+static void trans_table_cleanup(void) {
+ for(int i = 0; i < 7; i++) {
+  free(trans_table[i]);
+ }
+ free(trans_table);
+}
+
 #define CONCERTC_VER "1.0.0"
 
 void compile_song(song* concert, char* lilypond, instrument instr, uint8_t pitch_lvl_offset, char* clef) {
@@ -156,4 +172,6 @@ int main(int argc, char * argv[]) {
  
  song* x = parse_concert("example.concert");
  compile_song(x, "z.ly", BB_INST, 2, "treble");
+ free_song(x);
+ trans_table_cleanup();
 }
