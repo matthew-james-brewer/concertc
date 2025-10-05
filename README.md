@@ -22,16 +22,24 @@ To understand the file format, see the examples.
 
 ## examples
 
-For Bb clarinet:
+### For Bb clarinet:
 
-`concertc happy-birthday.concert hb.ly Bb 1 treble`
-`lilypond --png hb.ly`
+```
+concertc happy-birthday.concert hb.ly Bb 1 treble
+lilypond --png hb.ly
+```
 
 ![sheet music for Bb clarinet](Bb-clarinet.png)
 
-For Flute:
+### For Flute:
 
-`concertc happy-birthday.concert hb.ly C 2 treble`
-`lilypond --png hb.ly`
+```
+concertc happy-birthday.concert hb.ly C 2 treble`
+lilypond --png hb.ly
+```
 
 ![sheet music for flute](flute.png)
+
+## Combined examples for Flute, Bb clarinet, and Alto Saxophone
+
+![sheet of music](combined.jpeg)
