@@ -18,6 +18,10 @@ For Bb clarinet:
 
 `concertc happy-birthday.concert hb.ly Bb 1 treble`
 
+![sheet music for Bb clarinet](Bb-clarinet.png)
+
 For Flute:
 
 `concertc happy-birthday.concert hb.ly C 2 treble`
+
+![sheet music for flute](flute.png)
