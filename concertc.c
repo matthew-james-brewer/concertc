@@ -142,7 +142,7 @@ static void trans_table_cleanup(void) {
 
 #define CONCERTC_VER "1.0.0"
 
-void compile_song(song* concert, char* lilypond, instrument instr, uint8_t pitch_lvl_offset, char* clef) {
+void compile_song(song* concert, char* lilypond, instrument instr, int8_t pitch_lvl_offset, char* clef) {
  FILE* lPtr = fopen(lilypond, "w");
  if(!lPtr) { perror("Error"); exit(-1); }
  fprintf(lPtr, "\\version \"2.19.21\"\n\n"
@@ -161,7 +161,7 @@ void compile_song(song* concert, char* lilypond, instrument instr, uint8_t pitch
   fputc('a'+a.letter, lPtr);
   if(a.acc == SHARP) { fputs("is", lPtr); }
   else if(a.acc == FLAT) { fputs("es", lPtr); }
-  int8_t true_pitch_lvl = (n->pitch_lvl - 2) + pitch_lvl_offset + a.oct_shift;
+  int8_t true_pitch_lvl = n->pitch_lvl + pitch_lvl_offset - 2 + a.oct_shift;
   if(true_pitch_lvl < 0) {
    for(int i = 0; i < -true_pitch_lvl; i++) { fputc(',',lPtr); }
   } else {
@@ -196,7 +196,7 @@ int main(int argc, char * argv[]) {
   exit(-1);
  }
 
- uint8_t offset = (uint8_t)atoi(argv[4]);
+ int8_t offset = (int8_t)atoi(argv[4]);
 
  char* clef = argv[5];
 
@@ -205,4 +205,3 @@ int main(int argc, char * argv[]) {
  free_song(x);
  trans_table_cleanup();
 }
-
