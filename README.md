@@ -12,8 +12,12 @@ concertc is a program that converts a new kind of music file to a lilypond file 
  - {pitch offset}: start at 0, and tweak as needed for instrument
  - (treble|bass): type of clef
 
-## example
+## examples
 
 For Bb clarinet:
 
 `concertc happy-birthday.concert hb.ly Bb 1 treble`
+
+For Flute:
+
+`concertc happy-birthday.concert hb.ly C 2 treble`
