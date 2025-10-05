@@ -112,20 +112,20 @@ static void trans_table_init(void) {
  trans_table[0][0] = memdup((nmin[]){ N('B', NATURAL), N('F', SHARP),   N('E', NATURAL) }, sizeof(nmin[3])); // A
  trans_table[0][2] = memdup((nmin[]){ N('B', FLAT),    N('F', NATURAL), N('E', FLAT)    }, sizeof(nmin[3])); // Ab
  trans_table[1][0] = memdup((nmin[]){ U('C', SHARP),   N('G', SHARP),   N('F', SHARP)   }, sizeof(nmin[3])); // B
- trans_table[1][2] = memdup((nmin[]){ N('C', NATURAL), N('G', NATURAL), N('F', NATURAL) }, sizeof(nmin[3])); // Bb
+ trans_table[1][2] = memdup((nmin[]){ U('C', NATURAL), N('G', NATURAL), N('F', NATURAL) }, sizeof(nmin[3])); // Bb
+ trans_table[1][1] = memdup((nmin[]){ U('D', NATURAL), N('A', NATURAL), N('G', NATURAL) }, sizeof(nmin[3])); // B#
  trans_table[2][0] = memdup((nmin[]){ N('D', NATURAL), D('A', NATURAL), D('G', NATURAL) }, sizeof(nmin[3])); // C
+ trans_table[2][2] = memdup((nmin[]){ N('C', SHARP),   D('G', SHARP),   D('F', SHARP)   }, sizeof(nmin[3])); // Cb
  trans_table[3][0] = memdup((nmin[]){ N('E', NATURAL), D('B', NATURAL), D('A', NATURAL) }, sizeof(nmin[3])); // D
- trans_table[3][2] = memdup((nmin[]){ N('E', FLAT),    N('B', FLAT),    N('A', FLAT)    }, sizeof(nmin[3])); // Db
+ trans_table[3][2] = memdup((nmin[]){ N('E', FLAT),    D('B', FLAT),    D('A', FLAT)    }, sizeof(nmin[3])); // Db
  trans_table[4][0] = memdup((nmin[]){ N('F', SHARP),   N('C', SHARP),   D('B', NATURAL) }, sizeof(nmin[3])); // E
- trans_table[4][2] = memdup((nmin[]){ N('F', NATURAL), N('C', NATURAL), N('B', FLAT)    }, sizeof(nmin[3])); // Eb
+ trans_table[4][2] = memdup((nmin[]){ N('F', NATURAL), N('C', NATURAL), D('B', FLAT)    }, sizeof(nmin[3])); // Eb
  trans_table[5][0] = memdup((nmin[]){ N('G', NATURAL), N('D', NATURAL), N('C', NATURAL) }, sizeof(nmin[3])); // F
  trans_table[5][1] = memdup((nmin[]){ N('G', SHARP),   N('D', SHARP),   N('C', SHARP)   }, sizeof(nmin[3])); // F#
  trans_table[6][0] = memdup((nmin[]){ N('A', NATURAL), N('E', NATURAL), N('D', NATURAL) }, sizeof(nmin[3])); // G
 
  trans_table[0][1] = trans_table[1][2]; // A# = Bb
- trans_table[1][1] = trans_table[2][0]; // B# = C
  trans_table[2][1] = trans_table[3][2]; // C# = Db
- trans_table[2][2] = trans_table[1][0]; // Cb = B
  trans_table[3][1] = trans_table[4][2]; // D# = Eb
  trans_table[4][1] = trans_table[5][0]; // E# = F
  trans_table[5][2] = trans_table[4][0]; // Fb = E
